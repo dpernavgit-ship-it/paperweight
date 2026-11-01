@@ -106,11 +106,6 @@
       "oneClick": true,
       "perMachine": false,
       "deleteAppDataOnUninstall": true
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "wslyvh",
-      "repo": "paperweight"
     }
   },
   "dependencies": {

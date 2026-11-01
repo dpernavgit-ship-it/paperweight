@@ -9,8 +9,6 @@ export const APP_CONFIG = {
   WEBSITE: `https://www.paperweight.email`,
 
   OWNER_NAME: "Paperweight",
-  SOCIAL_TWITTER: "wslyvh",
-  CONTACT_EMAIL: "hello@paperweight.email",
 
 };
 

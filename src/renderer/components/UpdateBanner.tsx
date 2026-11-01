@@ -23,12 +23,6 @@ export default function UpdateBanner({ info, onDismiss }: UpdateBannerProps): JS
           {info.isMajor
             ? "This release contains significant new features and changes. "
             : `You have v${info.current}. `}
-          <button
-            className="underline hover:no-underline"
-            onClick={() => window.api.openExternal("https://github.com/wslyvh/paperweight/releases")}
-          >
-            View release
-          </button>
         </p>
         <button
           className="btn btn-primary btn-sm mt-2"
