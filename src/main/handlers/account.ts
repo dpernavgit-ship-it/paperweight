@@ -137,8 +137,6 @@ export function registerAccountHandlers(): void {
 
   // --- Multi-account management ---
 
-  // Adding accounts is always allowed.
-  handle(IPC.addAccount, () => null);
 
   ipcMain.on(IPC.listAccounts, (event) => {
     const activeEmail = getActiveEmail();

@@ -1,4 +1,3 @@
-import { useActionAccess } from "../context/LicenseContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type {
@@ -305,7 +304,6 @@ function Timeline({
 }
 
 export default function CaseDetail(): JSX.Element {
-  const allowAction = useActionAccess();
   const { caseId } = useParams<{ caseId: string }>();
   const navigate = useNavigate();
   const id = Number(caseId);
@@ -407,7 +405,6 @@ export default function CaseDetail(): JSX.Element {
   const requestEvent = [...events].reverse().find((e) => e.actionType === "gdpr_request_sent");
 
   const handleToggleLink = async (messageId: string, linked: boolean): Promise<void> => {
-    if (!allowAction("curate")) return;
     setLinkLoading(true);
     setFlash(null);
     try {
@@ -441,7 +438,6 @@ export default function CaseDetail(): JSX.Element {
   const pendingEmail = sendAction ? buildActionEmail(sendAction) : null;
 
   const handleSend = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!sendAction || !caseDetail.recipientEmail || !pendingEmail) return;
     const recovering = isCaseMessageRecovery(pendingCaseRecord, id, sendAction);
     setActionLoading(true);
@@ -485,7 +481,6 @@ export default function CaseDetail(): JSX.Element {
   };
 
   const handleClose = async (): Promise<void> => {
-    if (!allowAction("curate")) return;
     setActionLoading(true);
     setModalError(undefined);
     try {
@@ -505,7 +500,6 @@ export default function CaseDetail(): JSX.Element {
   };
 
   const handleReopen = async (): Promise<void> => {
-    if (!allowAction("curate")) return;
     setActionLoading(true);
     setFlash(null);
     try {
@@ -520,7 +514,6 @@ export default function CaseDetail(): JSX.Element {
   };
 
   const handleEscalate = async (): Promise<void> => {
-    if (!allowAction("curate")) return;
     setActionLoading(true);
     setModalError(undefined);
     try {
@@ -639,7 +632,6 @@ export default function CaseDetail(): JSX.Element {
                   className="btn btn-primary btn-sm shrink-0"
                   disabled={!caseDetail.recipientEmail || actionLoading || !canSend}
                   onClick={() => {
-                    if (!allowAction("execute")) return;
                     setModalError(undefined);
                     setSendAction("reminder");
                   }}
@@ -658,7 +650,6 @@ export default function CaseDetail(): JSX.Element {
                   className="btn btn-primary btn-sm shrink-0"
                   disabled={!caseDetail.recipientEmail || actionLoading || !canSend}
                   onClick={() => {
-                    if (!allowAction("execute")) return;
                     setModalError(undefined);
                     setSendAction("followup");
                   }}

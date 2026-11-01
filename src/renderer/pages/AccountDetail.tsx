@@ -1,4 +1,3 @@
-import { useActionAccess } from "../context/LicenseContext";
 import { useEffect, useCallback, useState, type ReactNode } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import type {
@@ -298,7 +297,6 @@ function WhitelistSection({
 }
 
 export default function AccountDetail(): JSX.Element {
-  const allowAction = useActionAccess();
   const { groupKey } = useParams<{ groupKey: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -477,7 +475,6 @@ export default function AccountDetail(): JSX.Element {
   const isLastInList = !accountNav || (accountNav.currentIndex === accountNav.groupKeys.length - 1 && accountNav.vendorQuery.page >= Math.ceil(accountNav.total / accountNav.vendorQuery.limit));
 
   const handleToggleReviewed = async () => {
-    if (!allowAction("curate")) return;
     if (!detail) return;
     const newValue = detail.vendor.status !== "reviewed";
     await window.api.markVendorReviewed(detail.vendor.id, newValue);
@@ -726,11 +723,9 @@ export default function AccountDetail(): JSX.Element {
     if (id.startsWith("unsub-")) {
       const entry = unsubEntryForId(id);
       if (!entry) return;
-      if (!allowAction("execute")) return;
       setActiveItemId(id);
       setPendingUnsub(entry);
     } else if (id === "deleteMarketing" || id === "deleteAll") {
-      if (!allowAction("execute")) return;
       setActiveItemId(id);
       setDeleteError(undefined);
       setPendingDelete(id === "deleteAll" ? "all" : "marketing");
@@ -746,7 +741,6 @@ export default function AccountDetail(): JSX.Element {
   }
 
   const handleUnsubscribeConfirm = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!pendingUnsub || !detail) return;
     const entry = pendingUnsub;
     const vendorId = detail.vendor.id;
@@ -809,7 +803,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleUnsubResultDone = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubResult || !detail) return;
     const { entry, trashAlso } = unsubResult;
     setActionLoading(true);
@@ -834,7 +827,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleUnsubResultSpam = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubResult || !detail) return;
     const { entry } = unsubResult;
     setActionLoading(true);
@@ -859,7 +851,6 @@ export default function AccountDetail(): JSX.Element {
   const handleUnsubResultFallback = async (
     fallbackEntry: UnsubscribeEntry,
   ): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubResult || !detail) return;
     const { entry } = unsubResult;
     const origin = viewedMailboxEmail();
@@ -895,7 +886,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleUnsubCheckDone = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubCheck || !detail) return;
     const { entry, trashAlso } = unsubCheck;
     const origin = viewedMailboxEmail();
@@ -928,7 +918,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleUnsubCheckSpam = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubCheck || !detail) return;
     const { entry } = unsubCheck;
     setActionLoading(true);
@@ -951,7 +940,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleDeleteConfirm = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!pendingDelete || !detail) return;
     setActionLoading(true);
     try {
@@ -974,7 +962,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleOpenWhitelistModal = (): void => {
-    if (!allowAction("curate")) return;
     if (!canOpenWhitelistModal) return;
     setSelectedWhitelistValues(new Set());
     setWhitelistModalOpen(true);
@@ -993,7 +980,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleWhitelistConfirm = async (): Promise<void> => {
-    if (!allowAction("curate")) return;
     if (selectedWhitelistValues.size === 0) return;
     setWhitelistLoading(true);
     try {
@@ -1011,7 +997,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleWhitelistRemove = async (value: string): Promise<void> => {
-    if (!allowAction("curate")) return;
     setWhitelistLoading(true);
     try {
       await window.api.removeWhitelistEntry(value);
@@ -1025,7 +1010,6 @@ export default function AccountDetail(): JSX.Element {
   // the new value: React has not re-rendered yet, so requesterEmail still holds
   // the old one at that point.
   const persistAccountEmail = async (address?: string): Promise<void> => {
-    if (!allowAction("curate")) return;
     if (!detail) return;
     const next = (address ?? requesterEmail).trim();
     // Validate what is about to be saved, not what the field held before it.
@@ -1040,7 +1024,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleRecordRequest = async (): Promise<void> => {
-    if (!allowAction("curate")) return;
     const email = dataRequestType === "access" ? accessEmail : deletionEmail;
     if (!email || !recipientEmail || !detail || !canBuildRequest) return;
     setActionLoading(true);
@@ -1064,7 +1047,6 @@ export default function AccountDetail(): JSX.Element {
   };
 
   const handleGdprSend = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     const email = dataRequestType === "access" ? accessEmail : deletionEmail;
     if (!email || !recipientEmail || !detail || !canBuildRequest || !groupKey) return;
     const recovering = isGdprSendRecovery(pendingGdprRecord, groupKey, dataRequestType);
@@ -1763,7 +1745,6 @@ export default function AccountDetail(): JSX.Element {
                         className="btn btn-primary btn-sm"
                         disabled={!recipientEmail || !canBuildRequest || actionLoading || !canSend}
                         onClick={() => {
-                          if (!allowAction("execute")) return;
                           setGdprSendError(undefined);
                           setGdprSendOpen("send");
                         }}
@@ -1781,7 +1762,6 @@ export default function AccountDetail(): JSX.Element {
                         className="btn btn-ghost btn-sm"
                         disabled={!recipientEmail || !canBuildRequest || actionLoading}
                         onClick={() => {
-                          if (!allowAction("curate")) return;
                           setGdprSendError(undefined);
                           setGdprSendOpen("record");
                         }}

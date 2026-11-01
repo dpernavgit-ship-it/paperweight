@@ -1,4 +1,3 @@
-import { useActionAccess } from "../context/LicenseContext";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { Vendor, VendorQuery, UnsubscribeEntry } from "@shared/types";
@@ -188,7 +187,6 @@ interface MailState {
 }
 
 export default function Mail(): JSX.Element {
-  const allowAction = useActionAccess();
   const navigate = useNavigate();
   const location = useLocation();
   const locState = location.state as { preset?: MailPresetId; restore?: MailState } | null;
@@ -405,7 +403,6 @@ export default function Mail(): JSX.Element {
     vendor: Vendor,
   ): Promise<void> => {
     e.stopPropagation();
-    if (!allowAction("curate")) return;
     // Try to get a representative sender email from cached methods
     const methods = await getOrFetchMethods(vendor.id);
     const senderEmail = methods[0]?.senderEmail;
@@ -422,7 +419,6 @@ export default function Mail(): JSX.Element {
     vendor: Vendor,
   ): Promise<void> => {
     e.stopPropagation();
-    if (!allowAction("execute")) return;
     const methods = await getOrFetchMethods(vendor.id);
     setModal({
       kind: "unsubscribe",
@@ -434,20 +430,17 @@ export default function Mail(): JSX.Element {
 
   const handleSpamClick = (e: React.MouseEvent, vendor: Vendor): void => {
     e.stopPropagation();
-    if (!allowAction("execute")) return;
     setModal({ kind: "spam", vendor, whitelistTarget: "domain" });
   };
 
   const handleTrashClick = (e: React.MouseEvent, vendor: Vendor): void => {
     e.stopPropagation();
-    if (!allowAction("execute")) return;
     setModal({ kind: "trash", vendor, whitelistTarget: "domain" });
   };
 
   // ---------- batch actions ----------
 
   const openBatch = (kind: BatchKind) => {
-    if (!allowAction("execute")) return;
     setBatch({
       phase: "confirm",
       kind,
@@ -460,7 +453,6 @@ export default function Mail(): JSX.Element {
   };
 
   const runBatch = async () => {
-    if (!allowAction("execute")) return;
     if (!batch || batch.phase !== "confirm") return;
     const kind = batch.kind;
     const trashAlso = batch.trashAlso;
@@ -575,7 +567,6 @@ export default function Mail(): JSX.Element {
   // ---------- modal confirmations ----------
 
   const handleWhitelistConfirm = async (): Promise<void> => {
-    if (!allowAction("curate")) return;
     if (!modal || modal.kind !== "whitelist") return;
     const { vendor, whitelistTarget, senderEmail } = modal;
     const target =
@@ -594,7 +585,6 @@ export default function Mail(): JSX.Element {
   };
 
   const handleUnsubscribeConfirm = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!modal || modal.kind !== "unsubscribe") return;
     const { vendor, methods } = modal;
     const best = methods ? pickBestMethod(methods) : undefined;
@@ -639,7 +629,6 @@ export default function Mail(): JSX.Element {
   };
 
   const handleUnsubResultDone = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubResult) return;
     const { vendor, trashAlso } = unsubResult;
     setActionLoading(true);
@@ -662,7 +651,6 @@ export default function Mail(): JSX.Element {
   };
 
   const handleUnsubResultSpam = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubResult) return;
     const { vendor } = unsubResult;
     setActionLoading(true);
@@ -683,7 +671,6 @@ export default function Mail(): JSX.Element {
   };
 
   const handleUnsubResultFallback = async (entry: UnsubscribeEntry): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubResult) return;
     const { vendor } = unsubResult;
     const origin = viewedMailboxEmail();
@@ -710,7 +697,6 @@ export default function Mail(): JSX.Element {
   };
 
   const handleUnsubCheckDone = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubCheck) return;
     const { vendor, trashAlso } = unsubCheck;
     const origin = viewedMailboxEmail();
@@ -741,7 +727,6 @@ export default function Mail(): JSX.Element {
   };
 
   const handleUnsubCheckSpam = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!unsubCheck) return;
     const { vendor } = unsubCheck;
     setActionLoading(true);
@@ -762,7 +747,6 @@ export default function Mail(): JSX.Element {
   };
 
   const handleSpamConfirm = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     // Called from spam modal AND from unsubscribe "no methods" modal
     if (!modal || (modal.kind !== "spam" && modal.kind !== "unsubscribe"))
       return;
@@ -784,7 +768,6 @@ export default function Mail(): JSX.Element {
   };
 
   const handleTrashConfirm = async (): Promise<void> => {
-    if (!allowAction("execute")) return;
     if (!modal || modal.kind !== "trash") return;
     const { vendor } = modal;
     setActionLoading(true);

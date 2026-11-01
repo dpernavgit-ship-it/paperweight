@@ -17,7 +17,6 @@ import type {
   EmailConnection,
   ImapConfig,
   ImpactStats,
-  LicenseStatus,
   PrivacyRequestResult,
   CaseMessageResult,
   Message,
@@ -77,9 +76,6 @@ export const IPC = {
   markMessageAsSpam: "mark-message-as-spam",
   markMessageAsRead: "mark-message-as-read",
   getEmailConnection: "get-email-connection",
-  activateLicense: "activate-license",
-  getLicenseStatus: "get-license-status",
-  deactivateLicense: "deactivate-license",
   getSupportInfo: "get-support-info",
   getStorageBreakdown: "get-storage-breakdown",
   readLogFile: "read-log-file",
@@ -92,7 +88,6 @@ export const IPC = {
   getRiskCounts: "get-risk-counts",
   getActivityLog: "get-activity-log",
   listAccounts: "list-accounts",
-  addAccount: "add-account",
   switchAccount: "switch-account",
   openUnsubscribeUrl: "open-unsubscribe-url",
   removeAccount: "remove-account",
@@ -175,9 +170,6 @@ export interface ElectronAPI {
   markMessageAsSpam: (messageId: string) => Promise<void>;
   markMessageAsRead: (messageId: string, isRead: boolean) => Promise<void>;
   getEmailConnection: () => Promise<EmailConnection | null>;
-  activateLicense: (key: string) => Promise<LicenseStatus>;
-  getLicenseStatus: () => Promise<LicenseStatus>;
-  deactivateLicense: () => Promise<void>;
   getSupportInfo: () => Promise<SupportInfo>;
   getStorageBreakdown: () => Promise<StorageBreakdown>;
   readLogFile: () => Promise<string>;
@@ -190,7 +182,6 @@ export interface ElectronAPI {
   getRiskCounts: () => Promise<RiskCounts>;
   getActivityLog: (limit: number, offset: number) => Promise<{ entries: ActivityEntry[]; total: number }>;
   listAccounts: () => AccountSummary[];
-  addAccount: () => Promise<{ blocked: true; reason: "license_required" } | null>;
   switchAccount: (email: string) => Promise<void>;
   openUnsubscribeUrl: (url: string) => Promise<void>;
   removeAccount: (email: string) => Promise<void>;

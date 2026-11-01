@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { AccountSummary } from "@shared/types";
-
-import { useLicense } from "../context/LicenseContext";
 
 export const MAILBOX_CHANGED = "This action no longer matches the current mailbox.";
 
@@ -16,10 +14,7 @@ export function requireSameMailbox(origin?: string): void {
 }
 
 export function useAccounts() {
-  const license = useLicense();
   const [accounts, setAccounts] = useState<AccountSummary[]>(() => window.api.listAccounts());
-
-  useEffect(() => { setAccounts(window.api.listAccounts()); }, [license.active]);
 
   const refresh = () => setAccounts(window.api.listAccounts());
 

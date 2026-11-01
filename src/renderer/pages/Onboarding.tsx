@@ -26,13 +26,13 @@ const slides = [
     icon: <Trash2 className="w-10 h-10" />,
     title: "Clear the clutter",
     description:
-      "Review your mailing lists by volume. Pro lets you unsubscribe, trash emails, and report spam. For senders that support one-click unsubscribe, Paperweight handles it automatically. Others will open the sender's unsubscribe page for you.",
+      "Review your mailing lists by volume. You can unsubscribe, trash emails, and report spam. For senders that support one-click unsubscribe, Paperweight handles it automatically. Others will open the sender's unsubscribe page for you.",
   },
   {
     icon: <Globe className="w-10 h-10" />,
     title: "Manage your footprint",
     description:
-      "The Accounts tab shows every company holding your data. For ones you no longer use, Pro lets you send a GDPR deletion request directly from Paperweight. You can also copy the request and send it yourself for free. We pre-fill it with your account details.",
+      "The Accounts tab shows every company holding your data. For ones you no longer use, you can send a GDPR deletion request directly from the app. You can also copy the request and send it yourself. We pre-fill it with your account details.",
   },
 ];
 

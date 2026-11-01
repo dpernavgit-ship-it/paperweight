@@ -1,4 +1,3 @@
-import { useActionAccess } from "../context/LicenseContext";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { Vendor, VendorQuery } from "@shared/types";
@@ -68,7 +67,6 @@ interface AccountsState {
 }
 
 export default function Accounts(): JSX.Element {
-  const allowAction = useActionAccess();
   const navigate = useNavigate();
   const location = useLocation();
   const locState = location.state as { preset?: string; restore?: AccountsState } | null;
@@ -200,18 +198,15 @@ export default function Accounts(): JSX.Element {
 
   function handleWhitelistClick(e: React.MouseEvent, vendor: Vendor) {
     e.stopPropagation();
-    if (!allowAction("curate")) return;
     setModal({ kind: "whitelist", vendor });
   }
 
   function handleReviewedClick(e: React.MouseEvent, vendor: Vendor) {
     e.stopPropagation();
-    if (!allowAction("curate")) return;
     setModal({ kind: "reviewed", vendor });
   }
 
   async function handleWhitelistConfirm() {
-    if (!allowAction("curate")) return;
     if (!modal || modal.kind !== "whitelist") return;
     const { vendor } = modal;
     if (!vendor.root_domain) return;
@@ -227,7 +222,6 @@ export default function Accounts(): JSX.Element {
   }
 
   async function handleReviewedConfirm() {
-    if (!allowAction("curate")) return;
     if (!modal || modal.kind !== "reviewed") return;
     const { vendor } = modal;
     const newValue = vendor.status !== "reviewed";
