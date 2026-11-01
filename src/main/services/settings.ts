@@ -8,8 +8,7 @@ import type { McpSetup, WhitelistEntry } from "@shared/types";
 export function getSetting(key: string): string | undefined {
   const d = getDb();
   const row = d.prepare("SELECT value FROM settings WHERE key = ?").get(key) as
-    | { value: string }
-    | undefined;
+    { value: string } | undefined;
   return row?.value;
 }
 
