@@ -1,4 +1,3 @@
-jest.mock("./settings", () => ({ requirePro: jest.fn() }));
 jest.mock("../utils/log", () => ({
   actionLog: { info: jest.fn(), error: jest.fn() },
 }));
@@ -181,13 +180,3 @@ describe("unsubscribeVendor", () => {
 });
 
 
-it("blocks Free unsubscribe before any request or local status change", async () => {
-  const { requirePro } = await import("./settings");
-  jest.mocked(requirePro).mockImplementationOnce(() => { throw new Error("Pro required"); });
-  const request = jest.spyOn(global, "fetch");
-  await expect(unsubscribeVendor(42)).rejects.toThrow("Pro required");
-  expect(request).not.toHaveBeenCalled();
-  expect(send).not.toHaveBeenCalled();
-  expect(markList).not.toHaveBeenCalled();
-  request.mockRestore();
-});

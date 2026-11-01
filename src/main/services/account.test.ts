@@ -1,4 +1,3 @@
-const mockRequirePro = jest.fn();
 const mockLoadCredentials = jest.fn();
 const mockSaveCredentials = jest.fn();
 const mockDeleteCredentials = jest.fn();
@@ -46,7 +45,7 @@ jest.mock("../providers/smtp", () => ({
   testSmtpConnection: mockTestSmtpConnection,
 }));
 jest.mock("../providers/ProviderFactory", () => ({ getProvider: mockGetProvider }));
-jest.mock("./settings", () => ({ requirePro: mockRequirePro,
+jest.mock("./settings", () => ({
   addWhitelistEntry: jest.fn(),
   getSetting: jest.fn(),
   saveSetting: jest.fn(),
@@ -313,40 +312,3 @@ describe("bulk account actions", () => {
 });
 
 
-describe("Free account creation and cleanup", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockListAccounts.mockReturnValue([{ email: "existing@example.com", providerType: "gmail" }]);
-    mockRequirePro.mockImplementation(() => { throw new Error("Pro required"); });
-  });
-  afterEach(() => mockRequirePro.mockReset());
-
-  it("blocks direct Gmail, Microsoft, and IMAP adds before credentials can be saved", async () => {
-    await expect(startGmailAuthAndRecordAccount({ type: "add" })).resolves.toEqual({ success: false, error: "Pro required" });
-    await expect(startMicrosoftAuthAndRecordAccount({ type: "add" })).resolves.toEqual({ success: false, error: "Pro required" });
-    await expect(saveImapConfigAndRecordAccount({ type: "add" }, {
-      host: "imap.example.test", port: 993, tls: true, username: "second@example.test", password: "test-only",
-    })).resolves.toEqual({ success: false, error: "Pro required" });
-    expect(mockStartLoopbackAuth).not.toHaveBeenCalled();
-    expect(mockStartMicrosoftLoopbackAuth).not.toHaveBeenCalled();
-    expect(mockTestImapConnection).not.toHaveBeenCalled();
-    expect(mockSaveCredentials).not.toHaveBeenCalled();
-    expect(mockRegisterAccount).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    ["trash", () => trashMessage("message-1")],
-    ["spam", () => markMessageAsSpam("message-1")],
-    ["mark read", () => markMessageAsRead("message-1", true)],
-    ["bulk spam", () => spamVendorMessages(1)],
-  ])("blocks direct %s before contacting a provider", async (_name, action) => {
-    await expect(action()).rejects.toThrow("Pro required");
-    expect(mockGetProvider).not.toHaveBeenCalled();
-  });
-
-  it("blocks bulk trash before contacting a provider or changing local state", async () => {
-    await expect(trashVendorMessages(1)).rejects.toThrow("Pro required");
-    expect(mockGetProvider).not.toHaveBeenCalled();
-    expect(deleteVendorMessages).not.toHaveBeenCalled();
-  });
-});

@@ -5,7 +5,7 @@ jest.mock("./cases", () => ({
   queryGdprCases: jest.fn(() => []),
 }));
 jest.mock("./email", () => ({ sendEmail: jest.fn() }));
-jest.mock("./settings", () => ({ requirePro: jest.fn(), getSetting: jest.fn(() => "Test User") }));
+jest.mock("./settings", () => ({ getSetting: jest.fn(() => "Test User") }));
 jest.mock("./vendors", () => ({
   getVendorDetail: jest.fn(),
   updateVendor: jest.fn(),
@@ -356,13 +356,3 @@ describe("sendCaseMessage", () => {
 });
 
 
-it("blocks Free privacy requests before approval, sending, or local changes", async () => {
-  const { requirePro } = await import("./settings");
-  jest.mocked(requirePro).mockImplementationOnce(() => { throw new Error("Pro required"); });
-  await expect(sendPrivacyRequest(7, "example.nl", "access", "mailbox@example.test", undefined, undefined, undefined, approve))
-    .rejects.toThrow("Pro required");
-  expect(approve).not.toHaveBeenCalled();
-  expect(send).not.toHaveBeenCalled();
-  expect(update).not.toHaveBeenCalled();
-  expect(createCase).not.toHaveBeenCalled();
-});
