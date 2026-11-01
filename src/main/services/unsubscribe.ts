@@ -1,4 +1,3 @@
-import { requirePro } from "./settings";
 import type { UnsubscribeEntry } from "@shared/types";
 import { PAPERWEIGHT_UNSUB_BODY, parseMailto } from "@shared/utils";
 import { actionLog } from "../utils/log";
@@ -45,7 +44,6 @@ function httpUnsubscribeUrl(url: string): string | undefined {
 export async function executeRfc8058Unsubscribe(
   url: string,
 ): Promise<{ success: boolean; error?: string }> {
-  requirePro();
   if (!url.startsWith("https://")) {
     return { success: false, error: "One-click unsubscribe requires HTTPS." };
   }
@@ -66,7 +64,6 @@ export async function executeRfc8058Unsubscribe(
 }
 
 export async function unsubscribeVendor(vendorId: number): Promise<UnsubscribeResult> {
-  requirePro();
   const entry = pickBestMethod(getAllUnsubscribeMethodsForVendor(vendorId));
   if (!entry) return { status: "not_available", remainingTargets: 0 };
 

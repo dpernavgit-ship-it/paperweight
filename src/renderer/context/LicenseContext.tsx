@@ -29,12 +29,12 @@ const LicenseContext = createContext<LicenseContextValue | null>(null);
 
 export function useLicense(): LicenseStatus {
   const ctx = useContext(LicenseContext);
-  return ctx?.license ?? { active: false };
+  return ctx?.license ?? { active: true };   // antes: false
 }
 
 export function useActionAccess() {
   const ctx = useContext(LicenseContext);
-  return ctx?.allowAction ?? (() => false);
+  return ctx?.allowAction ?? (() => true);   // antes: () => false
 }
 
 export function useRefreshLicense(): () => Promise<void> {

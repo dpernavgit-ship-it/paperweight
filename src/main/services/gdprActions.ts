@@ -21,7 +21,7 @@ import {
   queryGdprCases,
 } from "./cases";
 import { sendEmail } from "./email";
-import { getSetting, requirePro } from "./settings";
+import { getSetting } from "./settings";
 import { getVendorDetail, updateVendor } from "./vendors";
 
 export type OutboundEmailApprovalResult =
@@ -60,7 +60,6 @@ export async function sendPrivacyRequest(
   sentMessageId?: string,
   recordOnly?: boolean,
 ): Promise<PrivacyRequestResult> {
-  requirePro();
   const detail = getVendorDetail(companyKey);
   if (detail.vendor.id !== vendorId) throw new Error("Company changed while preparing request");
   const hasActiveCase = queryGdprCases({ status: "active", vendorId })
@@ -123,7 +122,6 @@ export async function sendCaseMessage(
   recordOnly?: boolean,
   sentMessageId?: string,
 ): Promise<CaseMessageResult> {
-  requirePro();
   const detail = getGdprCaseById(caseId);
   if (
     !detail

@@ -16,7 +16,7 @@ import { startMicrosoftLoopbackAuth, fetchMicrosoftProfileEmail } from "../provi
 import { testImapConnection } from "../providers/imap";
 import { testSmtpConnection } from "../providers/smtp";
 import { getProvider } from "../providers/ProviderFactory";
-import { addWhitelistEntry, getSetting, saveSetting, applyAutoLaunch, requirePro } from "./settings";
+import { addWhitelistEntry, getSetting, saveSetting, applyAutoLaunch } from "./settings";
 import { saveGlobalSetting } from "./globalSettings";
 import { getDashboardStats } from "./stats";
 import { getSyncState } from "./sync";
@@ -35,9 +35,6 @@ import { authLog, actionLog } from "../utils/log";
 import { seedProfileEmailsFromCurrentAccount } from "./profileSeed";
 import { validateAccountIntent } from "./accountIntent";
 
-function requireAccountEntitlement(intent: AccountAuthIntent): void {
-  if (intent.type === "add" && listAccounts().length > 0) requirePro();
-}
 
 // Populate per-account settings in the DB if they are missing.
 // Called after every DB reconnect (account switch or new account setup).
@@ -109,7 +106,6 @@ export async function startGmailAuthAndRecordAccount(
   openInBrowser = true,
 ) {
   try {
-    requireAccountEntitlement(intent);
     authLog.info("Gmail auth started");
     setStagingMode(true);
     let result;
@@ -144,7 +140,6 @@ export async function startGmailAuthAndRecordAccount(
     if (!intentResult.success) return intentResult;
 
     authLog.info("Gmail auth completed");
-    requireAccountEntitlement(intent);
     saveCredentials(stagingCreds, email);
     if (intent.type === "add") recordAccount(email, "gmail");
 
@@ -161,7 +156,6 @@ export async function startMicrosoftAuthAndRecordAccount(
   openInBrowser = true,
 ) {
   try {
-    requireAccountEntitlement(intent);
     authLog.info("Microsoft auth started");
     setStagingMode(true);
     let result;
@@ -196,7 +190,6 @@ export async function startMicrosoftAuthAndRecordAccount(
     if (!intentResult.success) return intentResult;
 
     authLog.info("Microsoft auth completed");
-    requireAccountEntitlement(intent);
     saveCredentials(stagingCreds, email);
     if (intent.type === "add") recordAccount(email, "microsoft");
 
@@ -213,7 +206,6 @@ export async function saveImapConfigAndRecordAccount(
   config: ImapConfig,
 ) {
   try {
-    requireAccountEntitlement(intent);
     const intentResult = validateAccountIntent(
       intent,
       config.username,
@@ -258,7 +250,6 @@ export async function saveImapConfigAndRecordAccount(
 
     const email = config.username;
     authLog.info("IMAP+SMTP config saved");
-    requireAccountEntitlement(intent);
     saveCredentials({ providerType: "imap", imap: config }, email);
     if (intent.type === "add") recordAccount(email, "imap");
 
@@ -361,11 +352,9 @@ export async function getEmailConnection(): Promise<EmailConnection | null> {
 }
 
 export async function trashMessage(messageId: string) {
-  requirePro();
   const provider = getProvider();
   try {
     await provider.connect();
-    requirePro();
     await provider.trashMessage(messageId);
   } finally {
     await provider.disconnect();
@@ -373,11 +362,9 @@ export async function trashMessage(messageId: string) {
 }
 
 export async function markMessageAsSpam(messageId: string) {
-  requirePro();
   const provider = getProvider();
   try {
     await provider.connect();
-    requirePro();
     await provider.markAsSpam(messageId);
   } finally {
     await provider.disconnect();
@@ -385,11 +372,9 @@ export async function markMessageAsSpam(messageId: string) {
 }
 
 export async function markMessageAsRead(messageId: string, isRead: boolean) {
-  requirePro();
   const provider = getProvider();
   try {
     await provider.connect();
-    requirePro();
     await provider.markAsRead(messageId, isRead);
   } finally {
     await provider.disconnect();
@@ -403,7 +388,6 @@ async function bulkActionVendorMessages(
   actionType: BulkActionType,
   types?: MessageType[],
 ): Promise<{ success: boolean; error?: string }> {
-  requirePro();
   const label = actionType === "trashed" ? "trashVendorMessages" : "spamVendorMessages";
 
   const ids = getMessageIdsByVendor(vendorId, types);
@@ -418,7 +402,6 @@ async function bulkActionVendorMessages(
         let failed = false;
         for (const id of ids) {
           try {
-            requirePro();
             if (actionType === "trashed") {
               await p.trashMessage(id);
             } else {

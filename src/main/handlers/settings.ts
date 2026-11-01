@@ -1,37 +1,20 @@
 import { handle } from "./access";
 import { ipcMain, shell } from "electron";
 import { IPC } from "@shared/ipc";
-import { isLicenseKey, isString } from "@shared/validation";
+import { isString } from "@shared/validation";
 import {
-  activateLicense,
   applyAutoLaunch,
-  deleteLicense,
-  getLicenseStatus,
   getMcpSetup,
-  requirePro,
+  saveSetting,
 } from "../services/settings";
-import { saveSetting } from "../services/settings";
-import { getGlobalSetting, saveGlobalSetting } from "../services/globalSettings";
+import {
+  getGlobalSetting,
+  saveGlobalSetting,
+} from "../services/globalSettings";
 import { buildAppSettings } from "../services/appSettings";
-import { startAllSyncs } from "../sync-manager";
 import { dataLog } from "../utils/log";
 
 export function registerSettingsHandlers(): void {
-  // --- License ---
-
-  handle(IPC.activateLicense, async (_event, key: unknown) => {
-    if (!isLicenseKey(key)) throw new Error("Invalid license key");
-    const status = await activateLicense(key);
-    if (status.active) startAllSyncs();
-    return status;
-  });
-
-  handle(IPC.getLicenseStatus, () => getLicenseStatus());
-
-  handle(IPC.deactivateLicense, () => {
-    deleteLicense();
-  });
-
   // --- App settings ---
 
   ipcMain.on(IPC.getSettings, (event) => {
@@ -44,22 +27,27 @@ export function registerSettingsHandlers(): void {
     }
     const s = settings as Record<string, unknown>;
     const changedKeys = Object.keys(s)
-      .filter((key) => ![
-        "agentAccess",
-        "agentMaskPersonalData",
-        "confirmAgentActions",
-        "confirmAgentUnmask",
-      ].includes(key))
+      .filter(
+        (key) =>
+          ![
+            "agentAccess",
+            "agentMaskPersonalData",
+            "confirmAgentActions",
+            "confirmAgentUnmask",
+          ].includes(key),
+      )
       .join(", ");
     if (changedKeys) dataLog.info(`Settings saved: ${changedKeys}`);
 
     if (s.autoLaunch !== undefined) {
-      if (typeof s.autoLaunch !== "boolean") throw new Error("Invalid autoLaunch");
+      if (typeof s.autoLaunch !== "boolean")
+        throw new Error("Invalid autoLaunch");
       saveGlobalSetting("autoLaunch", s.autoLaunch);
     }
 
     if (s.launchMinimized !== undefined) {
-      if (typeof s.launchMinimized !== "boolean") throw new Error("Invalid launchMinimized");
+      if (typeof s.launchMinimized !== "boolean")
+        throw new Error("Invalid launchMinimized");
       saveGlobalSetting("launchMinimized", s.launchMinimized);
     }
 
@@ -82,28 +70,29 @@ export function registerSettingsHandlers(): void {
     }
 
     if (s.agentAccess !== undefined) {
-      if (s.agentAccess !== "off") requirePro();
       if (
-        s.agentAccess !== "off"
-        && s.agentAccess !== "read"
-        && s.agentAccess !== "actions"
+        s.agentAccess !== "off" &&
+        s.agentAccess !== "read" &&
+        s.agentAccess !== "actions"
       ) {
         throw new Error("Invalid agentAccess");
       }
       if (
-        s.agentAccess === "actions"
-        && getGlobalSetting("agentAccess") !== "actions"
-        && s.confirmAgentActions !== true
+        s.agentAccess === "actions" &&
+        getGlobalSetting("agentAccess") !== "actions" &&
+        s.confirmAgentActions !== true
       ) {
         throw new Error("Read & write access requires confirmation");
       }
       const previousAgentAccess = getGlobalSetting("agentAccess") ?? "off";
       if (
-        previousAgentAccess === "off"
-        && s.agentAccess !== "off"
-        && s.agentMaskPersonalData === false
+        previousAgentAccess === "off" &&
+        s.agentAccess !== "off" &&
+        s.agentMaskPersonalData === false
       ) {
-        throw new Error("Personal-data masking starts on when enabling agent access");
+        throw new Error(
+          "Personal-data masking starts on when enabling agent access",
+        );
       }
       saveGlobalSetting("agentAccess", s.agentAccess);
       if (previousAgentAccess === "off" && s.agentAccess !== "off") {
@@ -118,24 +107,28 @@ export function registerSettingsHandlers(): void {
         throw new Error("Invalid agentMaskPersonalData");
       }
       if (
-        s.agentMaskPersonalData === false
-        && getGlobalSetting("agentMaskPersonalData") !== false
-        && s.confirmAgentUnmask !== true
+        s.agentMaskPersonalData === false &&
+        getGlobalSetting("agentMaskPersonalData") !== false &&
+        s.confirmAgentUnmask !== true
       ) {
-        throw new Error("Disabling personal-data masking requires confirmation");
+        throw new Error(
+          "Disabling personal-data masking requires confirmation",
+        );
       }
       saveGlobalSetting("agentMaskPersonalData", s.agentMaskPersonalData);
-      dataLog.info(`Agent personal-data masking: ${s.agentMaskPersonalData ? "on" : "off"}`);
+      dataLog.info(
+        `Agent personal-data masking: ${s.agentMaskPersonalData ? "on" : "off"}`,
+      );
     }
   });
 
   handle(IPC.getMcpSetup, () => getMcpSetup());
 
   handle(IPC.openUnsubscribeUrl, async (_event, url: unknown) => {
-    requirePro();
     if (!isString(url)) throw new Error("Invalid unsubscribe URL");
     const parsed = new URL(url);
-    if (!["https:", "http:"].includes(parsed.protocol)) throw new Error("Invalid unsubscribe URL");
+    if (!["https:", "http:"].includes(parsed.protocol))
+      throw new Error("Invalid unsubscribe URL");
     await shell.openExternal(url);
   });
 

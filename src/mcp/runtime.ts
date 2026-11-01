@@ -16,8 +16,6 @@ import {
 import { configureGlobalDbPath } from "../main/globalDb";
 import { getGlobalSetting } from "../main/services/globalSettings";
 
-import { getLicenseStatus, PRO_REQUIRED_MESSAGE } from "../main/services/settings";
-
 interface McpPaths {
   userData: string;
   resources: string;
@@ -39,17 +37,21 @@ function defaultUserDataPath(): string {
   }
   if (process.platform === "win32") {
     const appData = process.env.APPDATA;
-    if (!appData) throw new McpStartupError("Could not locate Paperweight data.");
+    if (!appData)
+      throw new McpStartupError("Could not locate Paperweight data.");
     return join(appData, "paperweight");
   }
-  return join(process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"), "paperweight");
+  return join(
+    process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"),
+    "paperweight",
+  );
 }
 
 function resolvePaths(): McpPaths {
   const userData = resolve(
-    process.env.PAPERWEIGHT_USER_DATA
-      ?? process.env.PAPERWEIGHT_SEED
-      ?? defaultUserDataPath(),
+    process.env.PAPERWEIGHT_USER_DATA ??
+      process.env.PAPERWEIGHT_SEED ??
+      defaultUserDataPath(),
   );
   const packagedResources = process.resourcesPath;
   const developmentResources = resolve(__dirname, "../../resources");
@@ -71,35 +73,34 @@ function accountDbPath(paths: McpPaths, email: string): string {
 }
 
 export function hasReadAccess(): boolean {
-  if (!getLicenseStatus().active) return false;
   const access = getGlobalSetting("agentAccess") ?? "off";
   return access === "read" || access === "actions";
 }
 
 export function hasWriteAccess(): boolean {
-  return getLicenseStatus().active && getGlobalSetting("agentAccess") === "actions";
+  return getGlobalSetting("agentAccess") === "actions";
 }
 
 export function readAccessError() {
   return {
-    content: [{
-      type: "text" as const,
-      text: getLicenseStatus().active
-        ? "AI Agent access is off. Enable it in Paperweight Settings."
-        : PRO_REQUIRED_MESSAGE,
-    }],
+    content: [
+      {
+        type: "text" as const,
+        text: "AI Agent access is off. Enable it in Paperweight Settings.",
+      },
+    ],
     isError: true,
   };
 }
 
 export function writeAccessError() {
   return {
-    content: [{
-      type: "text" as const,
-      text: getLicenseStatus().active
-        ? "Read & write AI Agent access is required. Change Access in Paperweight Settings."
-        : PRO_REQUIRED_MESSAGE,
-    }],
+    content: [
+      {
+        type: "text" as const,
+        text: "Read & write AI Agent access is required. Change Access in Paperweight Settings.",
+      },
+    ],
     isError: true,
   };
 }
@@ -149,7 +150,9 @@ export function getMailboxes(): AccountEntry[] {
 }
 
 export function findMailbox(mailbox: string): AccountEntry | undefined {
-  return listAccounts().find((account) => emailToFileKey(account.email) === mailbox);
+  return listAccounts().find(
+    (account) => emailToFileKey(account.email) === mailbox,
+  );
 }
 
 export function isMailboxAvailable(email: string): boolean {
@@ -160,11 +163,14 @@ export function isMailboxAvailable(email: string): boolean {
 export function selectMailbox(mailbox: string): boolean {
   const current = getRuntime();
   const account = findMailbox(mailbox);
-  if (!account) throw new Error("That mailbox is not registered in Paperweight.");
+  if (!account)
+    throw new Error("That mailbox is not registered in Paperweight.");
   const email = account.email;
   if (current.selectedMailbox === email) return false;
   if (activeMailboxActions > 0) {
-    throw new Error("Wait for the current mailbox action to finish before switching mailboxes.");
+    throw new Error(
+      "Wait for the current mailbox action to finish before switching mailboxes.",
+    );
   }
   try {
     reconnectDb(accountDbPath(current.paths, email));
@@ -189,7 +195,6 @@ export function initializePaperweight(): void {
   configureGlobalDbPath(join(paths.userData, "global.db"));
   configureAccountRegistryPath(join(paths.userData, "accounts.json"));
 
-  if (!getLicenseStatus().active) throw new McpStartupError(PRO_REQUIRED_MESSAGE);
   if (!hasReadAccess()) {
     throw new McpStartupError(
       "AI Agent access is off. Enable it in Paperweight Settings.",
@@ -205,12 +210,16 @@ export function initializePaperweight(): void {
     (item) => item.email.toLowerCase() === activeEmail.toLowerCase(),
   );
   if (!account) {
-    throw new McpStartupError("The active Paperweight mailbox is not registered.");
+    throw new McpStartupError(
+      "The active Paperweight mailbox is not registered.",
+    );
   }
 
   const databasePath = accountDbPath(paths, account.email);
   if (!existsSync(databasePath)) {
-    throw new McpStartupError("The active Paperweight mailbox data is unavailable.");
+    throw new McpStartupError(
+      "The active Paperweight mailbox data is unavailable.",
+    );
   }
 
   initDb(

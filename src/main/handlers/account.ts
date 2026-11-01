@@ -31,7 +31,6 @@ import {
   stopAllSyncs,
   stopSync,
 } from "../sync-manager";
-import { getLicenseStatus, deleteLicense } from "../services/settings";
 import { getDashboardStats } from "../services/stats";
 import {
   deleteCredentials,
@@ -138,20 +137,8 @@ export function registerAccountHandlers(): void {
 
   // --- Multi-account management ---
 
-  // Pre-flight license check before the renderer starts an OAuth flow.
-  // Intentionally two-step: this returns immediately so the renderer can show
-  // the license modal inline, then the actual auth IPC (startGmailAuth etc.)
-  // is called separately once the user is cleared to proceed.
-  handle(IPC.addAccount, () => {
-    const existing = listAccounts();
-    if (existing.length >= 1) {
-      const license = getLicenseStatus();
-      if (!license.active) {
-        return { blocked: true, reason: "license_required" };
-      }
-    }
-    return null;
-  });
+  // Adding accounts is always allowed.
+  handle(IPC.addAccount, () => null);
 
   ipcMain.on(IPC.listAccounts, (event) => {
     const activeEmail = getActiveEmail();
@@ -311,7 +298,6 @@ export function registerAccountHandlers(): void {
         if (existsSync(filePath)) unlinkSync(filePath);
       }
 
-      deleteLicense();
       wipeGlobalDatabase();
     } catch {
       throw new Error("Could not wipe all local data. Try again.");
@@ -326,7 +312,6 @@ export function registerAccountHandlers(): void {
 
   handle(IPC.getSupportInfo, (): SupportInfo => {
     const creds = loadCredentials();
-    const license = getLicenseStatus();
     const stats = getDashboardStats();
     const syncState = getSyncState();
 
@@ -339,7 +324,6 @@ export function registerAccountHandlers(): void {
       arch: os.arch(),
       platform: process.platform,
       providerType: creds?.providerType || "none",
-      licenseActive: license.active,
       totalMessages: stats.totalMessages,
       lastSyncAt: syncState.last_sync_at,
       logPath: getFileLogPath() || join(app.getPath("logs"), "main.log"),

@@ -594,7 +594,6 @@ export interface SupportInfo {
   arch: string;
   platform: string;
   providerType: string;
-  licenseActive: boolean;
   totalMessages: number;
   lastSyncAt?: number;
   logPath: string;
